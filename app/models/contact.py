@@ -1,15 +1,29 @@
-from sqlalchemy import Column, Integer, String, DateTime
-from sqlalchemy.ext.declarative import declarative_base
+from typing import List
+from pydantic import BaseModel
+from datetime import datetime
 
-Base = declarative_base()
+class ContactBase(BaseModel):
+    first_name: str
+    last_name: str
+    email: str
+    phone_number: str
+    birthday: datetime
+    additional_data: str = None
 
-class Contact(Base):
-    __tablename__ = "contacts"
+class ContactCreate(ContactBase):
+    pass
 
-    id = Column(Integer, primary_key=True, index=True)
-    first_name = Column(String, index=True)
-    last_name = Column(String, index=True)
-    email = Column(String, unique=True, index=True)
-    phone_number = Column(String)
-    birthday = Column(DateTime)
-    additional_data = Column(String, nullable=True)
+class ContactUpdate(ContactBase):
+    pass
+
+class Contact(ContactBase):
+    id: int
+
+    class Config:
+        orm_mode = True
+
+class ContactSearch(ContactBase):
+    pass
+
+class ContactList(BaseModel):
+    contacts: List[Contact]
