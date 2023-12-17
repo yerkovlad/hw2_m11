@@ -1,35 +1,21 @@
 from sqlalchemy.orm import Session
 from src.database.models import Contact
+from src.schemas.contact import ContactCreate
+from src.schemas.token import create_access_token
+from src.database.db import password_hasher
 
-def create_contact(db: Session, contact):
-    db_contact = Contact(**contact.dict())
+def register_user(db: Session, contact: ContactCreate):
+    db_contact = Contact(**contact.dict(), hashed_password=password_hasher.create_password_hash(contact.password))
     db.add(db_contact)
     db.commit()
     db.refresh(db_contact)
     return db_contact
 
-def get_contacts(db: Session, skip: int = 0, limit: int = 10):
-    return db.query(Contact).offset(skip).limit(limit).all()
+def authenticate_user(db: Session, email: str, password: str):
+    user = db.query(Contact).filter(Contact.email == email).first()
+    if user and password_hasher.verify_password(password, user.hashed_password):
+        return user
+    return None
 
-def get_contact(db: Session, contact_id: int):
-    return db.query(Contact).filter(Contact.id == contact_id).first()
-
-def update_contact(db: Session, contact_id: int, update_data: dict):
-    db_contact = db.query(Contact).filter(Contact.id == contact_id).first()
-    if db_contact:
-        for key, value in update_data.items():
-            setattr(db_contact, key, value)
-        db.commit()
-        db.refresh(db_contact)
-        return db_contact
-    else:
-        return None
-
-def delete_contact(db: Session, contact_id: int):
-    db_contact = db.query(Contact).filter(Contact.id == contact_id).first()
-    if db_contact:
-        db.delete(db_contact)
-        db.commit()
-        return db_contact
-    else:
-        return None
+def create_access_token_data(user: Contact):
+    return {"sub": user.email}
