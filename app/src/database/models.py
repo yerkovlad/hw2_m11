@@ -1,5 +1,7 @@
+from passlib.context import CryptContext
 from sqlalchemy import Column, Integer, String, DateTime
 from sqlalchemy.ext.declarative import declarative_base
+from datetime import datetime
 
 Base = declarative_base()
 
@@ -13,3 +15,4 @@ class Contact(Base):
     phone_number = Column(String)
     birthday = Column(DateTime)
     additional_data = Column(String, nullable=True)
+    hashed_password = Column(String)
