@@ -3,8 +3,10 @@ from sqlalchemy.ext.declarative import DeclarativeMeta, declarative_base
 from sqlalchemy.orm import sessionmaker
 from passlib.context import CryptContext
 from dotenv import load_dotenv
+from pathlib import Path
 
-load_dotenv()
+env_path = Path(".") / ".env"
+load_dotenv(dotenv_path=env_path)
 
 DATABASE_URL = "postgresql://yerkovlad:02012009@localhost/yerv"
 SECRET_KEY = "secretkey"
