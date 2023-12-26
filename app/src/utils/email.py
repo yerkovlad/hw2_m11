@@ -37,3 +37,17 @@ async def verify_email_token(token: str):
         return payload["sub"]
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid email verification token")
+        
+async def send_reset_password_email(email: str, token: str):
+    subject = "Password Reset Request"
+    html_content = f"""
+    <p>You have requested to reset your password. Click the link below to reset it:</p>
+    <p><a href="{config.FRONTEND_URL}/reset-password?token={token}">Reset Password</a></p>
+    """
+    message = MessageSchema(
+        subject=subject,
+        recipients=[email],
+        body=html_content,
+        subtype="html",
+    )
+    await mail.send_message(message)
