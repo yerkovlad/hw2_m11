@@ -4,6 +4,11 @@ from src.routes import contacts
 from src.database.db import engine
 import os
 from app.settings import *
+from django.core.asgi import get_asgi_application
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'your_django_project.settings')
+
+django_app = get_asgi_application()
 
 app = FastAPI()
 
