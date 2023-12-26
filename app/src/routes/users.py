@@ -1,23 +1,33 @@
-# app/routes/users.py
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi_mail import MessageSchema
 from sqlalchemy.orm import Session
-from src.database.db import SessionLocal
-from src.repository import users
-from src.schemas.user import UserCreate, User
-from src.utils.security import get_current_user, create_access_token
-from src.utils.email import send_email
-from src.utils.rate_limiting import rate_limit
+from app import schemas, crud, models, utils, database
 
 router = APIRouter()
 
-@router.post("/register", response_model=User)
-async def register(user: UserCreate, db: Session = Depends(SessionLocal)):
-    await rate_limit(request, max_requests=5, interval_seconds=60)
-    existing_user = users.get_user_by_email(db, user.email)
-    if existing_user:
-        raise HTTPException(status_code=409, detail="User with this email already registered")
-    user_data = user.dict()
-    user_data["is_verified"] = False
-    user_data["verification_token"] = "generate_and_store_unique_verification_token_here"
-    send_email(user.email, "Confirm Email", "Please confirm your email.")
-    return users.create_user(db, user_data)
+@router.post("/register", response_model=MessageSchema)
+async def register_user(user: schemas.UserCreate, db: Session = Depends(database.get_db)):
+    db_user = crud.get_user_by_email(db, email=user.email)
+    if db_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    hashed_password = utils.get_password_hash(user.password)
+    db_user = crud.create_user(db, user, hashed_password)
+    
+    await utils.send_email_verification(db_user.email)
+    
+    return {"message": "Registration successful. Check your email for verification."}
+
+@router.get("/verify/{token}", response_model=MessageSchema)
+async def verify_email(token: str, db: Session = Depends(database.get_db)):
+    email = await utils.verify_email_token(token)
+
+    db_user = crud.get_user_by_email(db, email=email)
+    if db_user:
+        crud.update_user_verification_status(db, user=db_user, is_verified=True)
+        return {"message": "Email verification successful."}
+    else:
+        raise HTTPException(status_code=404, detail="User not found")
+
+@router.get("/profile", response_model=schemas.User)
+async def get_user_profile(current_user: schemas.User = Depends(utils.get_current_user)):
+    return current_user
