@@ -16,6 +16,33 @@ limiter = RateLimiter(
 
 FastAPILimiter.init(limiter)
 
+@router.post("/register", response_model=User)
+async def register(user: UserCreate, db: Session = Depends(SessionLocal)):
+    await rate_limit(request, max_requests=5, interval_seconds=60)
+    existing_user = users.get_user_by_email(db, user.email)
+    if existing_user:
+        raise HTTPException(status_code=409, detail="User with this email already registered")
+    user_data = user.dict()
+    user_data["is_verified"] = False  # Додаємо поле для підтвердження електронної пошти
+    user_data["verification_token"] = "generate_and_store_unique_verification_token_here"
+    send_email(user.email, "Confirm Email", "Please confirm your email.")
+    return users.create_user(db, user_data)
+
+@router.get("/verify/{token}", response_model=MessageSchema)
+async def verify_email(token: str):
+    email = await verify_email_token(token)
+    user = db.query(User).filter(User.email == email).first()
+    if user:
+        user.email_verified = True
+        db.commit()
+        return {"message": "Email verification successful."}
+    else:
+        raise HTTPException(status_code=404, detail="User not found")
+
+@router.get("/profile", response_model=User)
+async def get_user_profile(current_user: User = Depends(get_current_user)):
+    return current_user
+
 @router.post("/avatar", response_model=schemas.User)
 async def update_avatar(
     file: UploadFile = File(...),
