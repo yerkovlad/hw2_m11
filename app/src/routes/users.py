@@ -63,16 +63,16 @@ async def update_avatar(
     else:
         raise HTTPException(status_code=404, detail="User not found")
 
-@router.post("/reset-password", response_model=schemas.Message)
-async def request_reset_password(
-    email: str,
-    db: Session = Depends(database.get_db)
-):
-    user = crud.get_user_by_email(db, email=email)
-    if user:
-        # Generate reset token and send email
-        reset_token = utils.generate_reset_token(email)
-        await utils.send_reset_password_email(email, reset_token)
-        return {"message": "Password reset email sent"}
-    else:
-        raise HTTPException(status_code=404, detail="User not found")
+@app.post("/forgot-password", response_model=dict)
+async def forgot_password(email: EmailStr):
+    user = await get_user_by_email(email)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    token = await generate_password_reset_token(email)
+    await send_reset_password_email(email, token)
+    return {"message": "Password reset email sent"}
+
+
+@app.post("/reset-password", response_model=dict)
+async def reset_password_route(token: str, new_password: str):
+    return await reset_password(token, new_password)
