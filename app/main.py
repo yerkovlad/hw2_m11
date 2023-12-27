@@ -8,6 +8,9 @@ from django.core.asgi import get_asgi_application
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'your_django_project.settings')
 
+app.include_router(contacts.router)
+app.include_router(users.router, prefix="/users")
+
 django_app = get_asgi_application()
 
 app = FastAPI()
