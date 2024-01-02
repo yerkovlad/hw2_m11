@@ -5,6 +5,19 @@ from datetime import datetime
 Base = declarative_base()
 
 class Contact(Base):
+    """
+    Represents a contact entity in the database.
+
+    Attributes:
+        id (int): The unique identifier for the contact.
+        first_name (str): The first name of the contact.
+        last_name (str): The last name of the contact.
+        email (str): The email address of the contact.
+        phone_number (str): The phone number of the contact.
+        birthday (datetime): The birthday of the contact.
+        additional_data (str): Additional information about the contact.
+        hashed_password (str): The hashed password for the contact.
+    """
     __tablename__ = "contacts"
 
     id = Column(Integer, primary_key=True, index=True)
