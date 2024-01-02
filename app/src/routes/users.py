@@ -21,6 +21,13 @@ FastAPILimiter.init(limiter)
 
 @router.post("/register", response_model=User)
 async def register(user: UserCreate, db: Session = Depends(SessionLocal)):
+    """
+    Registers a new user.
+
+    :param user: The user information for registration.
+    :param db: The database session.
+    :return: The registered user data.
+    """
     await rate_limit(request, max_requests=5, interval_seconds=60)
     existing_user = users.get_user_by_email(db, user.email)
     if existing_user:
@@ -33,6 +40,12 @@ async def register(user: UserCreate, db: Session = Depends(SessionLocal)):
 
 @router.get("/verify/{token}", response_model=MessageSchema)
 async def verify_email(token: str):
+    """
+    Verifies the email of a user.
+
+    :param token: The token used for email verification.
+    :return: A message indicating the success of the email verification.
+    """
     email = await verify_email_token(token)
     user = db.query(User).filter(User.email == email).first()
     if user:
@@ -44,6 +57,12 @@ async def verify_email(token: str):
 
 @router.get("/profile", response_model=User)
 async def get_user_profile(current_user: User = Depends(get_current_user)):
+    """
+    Retrieves the profile of the current user.
+
+    :param current_user: The currently authenticated user.
+    :return: The profile of the current user.
+    """
     return current_user
 
 @router.post("/avatar", response_model=schemas.User)
@@ -52,6 +71,14 @@ async def update_avatar(
     current_user: schemas.User = Depends(utils.get_current_user),
     db: Session = Depends(database.get_db)
 ):
+    """
+    Updates the avatar for the current user.
+
+    :param file: The avatar image file.
+    :param current_user: The currently authenticated user.
+    :param db: The database session.
+    :return: The user data with the updated avatar URL.
+    """
     await FastAPILimiter.check_key(
         limiter,
         utils.get_current_user_email(current_user),
@@ -68,6 +95,12 @@ async def update_avatar(
 
 @app.post("/forgot-password", response_model=dict)
 async def forgot_password(email: EmailStr):
+    """
+    Initiates the password reset process for a user.
+
+    :param email: The email of the user who forgot their password.
+    :return: A message indicating that the password reset email has been sent.
+    """
     user = await get_user_by_email(email)
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
