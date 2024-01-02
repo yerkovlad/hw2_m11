@@ -30,6 +30,11 @@ app.add_middleware(
 app.include_router(contacts.router)
 
 def create_tables():
+    """
+    Create a new tables.
+
+    :return: None
+    """
     from src.database.models import Base
     Base.metadata.create_all(bind=engine)
 
