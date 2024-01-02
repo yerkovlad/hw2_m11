@@ -18,34 +18,46 @@ Base: DeclarativeMeta = declarative_base()
 metadata = Base.metadata
 
 class Database:
-    """Wrapper class for the SQLAlchemy session.
-
-    This class is responsible for handling the database session
-    and providing it to other components when needed.
-    """
     def __init__(self):
         """Initialize a new Database instance."""
         self.db = SessionLocal()
 
     def get_db(self):
-        """Get the current database session.
+        """
+        Get the current database session.
 
-        Returns:
-            sqlalchemy.orm.Session: The current database session.
+        :return: sqlalchemy.orm.Session, The current database session.
         """
         return self.db
 
 db = Database()
 
-# Password hashing
 class PasswordHasher:
     def __init__(self, rounds: int = 12):
+        """
+        Initialize a new PasswordHasher instance.
+
+        :param rounds: The number of hashing rounds. Defaults to 12.
+        """
         self.pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto", rounds=rounds)
 
     def create_password_hash(self, password: str):
+        """
+        Create a hashed version of the given password.
+
+        :param password: The plain-text password.
+        :return: str, The hashed password.
+        """
         return self.pwd_context.hash(password)
 
     def verify_password(self, plain_password: str, hashed_password: str):
+        """
+        Verify a plain-text password against its hashed version.
+
+        :param plain_password: The plain-text password.
+        :param hashed_password: The hashed password to compare against.
+        :return: bool, True if the passwords match, False otherwise.
+        """
         return self.pwd_context.verify(plain_password, hashed_password)
 
 password_hasher = PasswordHasher()
