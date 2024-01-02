@@ -16,6 +16,11 @@ conf = ConnectionConfig(
 )
 
 async def send_email_verification(to_email: str):
+    """
+    Send an email verification link to a given email.
+
+    :param to_email: Email address to which the verification link is sent.
+    """
     subject = "Email Verification"
     message = f"Click the link below to verify your email:\n\nhttp://your-api-domain.com/verify?token={create_access_token({'sub': to_email})}"
     
@@ -32,6 +37,13 @@ async def send_email_verification(to_email: str):
         raise HTTPException(status_code=500, detail=f"Failed to send email: {str(e)}")
 
 async def verify_email_token(token: str):
+    """
+    Verify the email token received during email verification.
+
+    :param token: The token to be verified.
+    :return: Email address if token is valid.
+    :raises HTTPException: If token is invalid.
+    """
     try:
         payload = decode_token(token)
         return payload["sub"]
@@ -39,6 +51,12 @@ async def verify_email_token(token: str):
         raise HTTPException(status_code=401, detail="Invalid email verification token")
 
 async def send_reset_password_email(email: str, token: str):
+    """
+    Send a password reset email to the given email address.
+
+    :param email: Email address to which the reset link is sent.
+    :param token: Password reset token.
+    """
     subject = "Password Reset Request"
     message = f"Click on the link below to reset your password:\n\n" f"Reset link: /reset-password?token={token}"
     recipient = email
