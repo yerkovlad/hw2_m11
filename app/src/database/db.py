@@ -18,10 +18,21 @@ Base: DeclarativeMeta = declarative_base()
 metadata = Base.metadata
 
 class Database:
+    """Wrapper class for the SQLAlchemy session.
+
+    This class is responsible for handling the database session
+    and providing it to other components when needed.
+    """
     def __init__(self):
+        """Initialize a new Database instance."""
         self.db = SessionLocal()
 
     def get_db(self):
+        """Get the current database session.
+
+        Returns:
+            sqlalchemy.orm.Session: The current database session.
+        """
         return self.db
 
 db = Database()
