@@ -20,6 +20,14 @@ async def create_contact(
     current_user: schemas.User = Depends(utils.get_current_user),
     db: Session = Depends(database.get_db)
 ):
+    """
+    Create a new contact for the authenticated user.
+
+    :param contact: The contact information for the new contact.
+    :param current_user: The currently authenticated user.
+    :param db: The database session.
+    :return: The created contact.
+    """
     await FastAPILimiter.check_key(
         limiter, 
         utils.get_current_user_email(current_user), 
